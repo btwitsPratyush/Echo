@@ -42,9 +42,11 @@ export default function PostCard({ post, token }: { post: Post; token: string | 
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-[#FF90E8] border-2 border-black flex items-center justify-center text-sm font-black text-black uppercase shadow-[2px_2px_0_0_#000]">
-              {post.author.username.substring(0, 1)}
-            </div>
+            <img
+              src={`https://api.dicebear.com/9.x/dylan/svg?seed=${post.author.username}`}
+              alt={post.author.username}
+              className="w-12 h-12 rounded-full border-2 border-black bg-white shadow-[2px_2px_0_0_#000]"
+            />
             <div className="flex flex-col leading-none">
               <span className="font-black text-black text-lg font-display uppercase tracking-tight hover:underline cursor-pointer decoration-2 decoration-[#8B5CF6]">{post.author.username}</span>
               <span className="text-xs text-zinc-500 font-bold mt-1 uppercase tracking-widest">{timeAgo(post.created_at)}</span>

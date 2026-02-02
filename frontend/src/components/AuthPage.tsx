@@ -56,7 +56,7 @@ export default function AuthPage({ onAuthed }: Props) {
         {/* Mobile Background styling */}
         <div className="absolute inset-0 lg:hidden bg-[#8B5CF6]" />
 
-        <div className="w-full max-w-md bg-white border-4 border-[#8B5CF6] shadow-[0_0_20px_#8B5CF6] p-8 relative z-10 animate-pulse-slow">
+        <div className="w-full max-w-md bg-white border-4 border-[#8B5CF6] shadow-[0_0_20px_#8B5CF6] p-8 relative z-10">
           <div className="mb-8 text-center">
             <h2 className="text-4xl font-black uppercase text-black italic">
               {mode === "login" ? "Enter the Arena" : "Join the Cult"}

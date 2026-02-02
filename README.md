@@ -2,7 +2,8 @@
 
 > "Speak Loud. No filters, no fluff. Just pure, unadulterated chaos and community."
 
-![Echo Dashboard](./screenshot.png)
+![Echo Dashboard](./auth_preview.png)
+![Echo Feed](./feed_preview.png)
 
 ## What is Echo?
 
@@ -21,9 +22,23 @@ It demonstrates how to build scalable social features (like nested comments and 
 
 ---
 
-## 🏗 System Architecture
+---
+
+## 🏗 System Architecture & Data Flow
 
 Echo is built with a separation of concerns, ensuring scalability and type safety.
+
+### 🔄 The Data Flow
+
+1.  **User Action**: A user posts a comment or likes a post on the **React Frontend**.
+2.  **API Layer**: The frontend sends a JSON request to the **Django REST Framework (DRF)** API.
+    *   *Authentication*: Token-based auth validates the user session.
+3.  **Backend Logic & Safety**:
+    *   **Concurrency**: `transaction.atomic()` locks the database row to prevent race conditions (e.g., double-voting).
+    *   **Optimization**: For comments, the backend fetches a flat list and creates a nested tree in memory (O(n)) before sending it back, avoiding the N+1 problem.
+4.  **Database (SQLite/Postgres)**: The data is persisted.
+    *   **Ledger System**: Instead of updating a "Karma" field, we insert a new `KarmaActivity` row. This provides an immutable history of all points earned.
+5.  **Live Updates**: The Leaderboard recalculates dynamically by summing the last 24 hours of `KarmaActivity`.
 
 ### Stack
 - **Backend**: Django & Django REST Framework (DRF)
