@@ -26,6 +26,28 @@ It demonstrates how to build scalable social features (like nested comments and 
 
 Echo is built with a separation of concerns, ensuring scalability and type safety.
 
+### 🧭 Architecture Diagram (runtime)
+
+```mermaid
+flowchart LR
+  U[User] -->|Browser| FE["Frontend<br/>React + Vite + Tailwind<br/>:5173"]
+
+  FE -->|JSON over HTTP| API["Django REST API (DRF)<br/>:8000"]
+  API -->|ORM queries + transactions| DB["Database<br/>SQLite (dev) / Postgres (docker/prod)"]
+
+  subgraph "Core Domain"
+    C1[Posts + Likes]
+    C2["Comments (adjacency list)<br/>Tree built in memory"]
+    C3["KarmaActivity ledger<br/>append-only"]
+    C4["Leaderboard<br/>SUM(amount) last 24h"]
+  end
+
+  API --- C1
+  API --- C2
+  API --- C3
+  API --- C4
+```
+
 ### 🔄 The Data Flow
 
 1.  **User Action**: A user posts a comment or likes a post on the **React Frontend**.

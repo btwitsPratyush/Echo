@@ -1,4 +1,4 @@
-export type UserBrief = { id: number; username: string };
+export type UserBrief = { id: number; username: string; post_count?: number; karma?: number };
 
 export type Post = {
   id: number;
