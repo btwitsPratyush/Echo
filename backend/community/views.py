@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from django.db.models import BooleanField, Count, Exists, OuterRef, Value
+from django.db.models import BooleanField, Count, Exists, OuterRef, Sum, Value
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
@@ -9,7 +9,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.authtoken.models import Token
 from rest_framework import serializers
 
-from .models import Comment, CommentLike, Post, PostLike
+from .models import Comment, CommentLike, KarmaActivity, Post, PostLike
 from .serializers import (
     CommentCreateSerializer,
     LeaderboardEntrySerializer,
@@ -179,7 +179,15 @@ class MeView(APIView):
 
     def get(self, request):
         user = request.user
-        return Response({"id": user.id, "username": user.get_username()})
+        post_count = Post.objects.filter(author=user).count()
+        karma_agg = KarmaActivity.objects.filter(user=user).aggregate(total=Sum("amount"))
+        karma = karma_agg["total"] or 0
+        return Response({
+            "id": user.id,
+            "username": user.get_username(),
+            "post_count": post_count,
+            "karma": karma,
+        })
 
 
 class LogoutView(APIView):

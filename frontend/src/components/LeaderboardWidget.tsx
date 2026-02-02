@@ -24,7 +24,7 @@ export default function LeaderboardWidget() {
   }, []);
 
   return (
-    <div className="bg-white border-4 border-black p-6 shadow-[8px_8px_0_0_#CCFF00] min-h-[300px] relative">
+    <div className="bg-white border-4 border-black p-6 rounded-3xl shadow-[8px_8px_0_0_#CCFF00] min-h-[300px] relative">
       <div className="flex items-center justify-between mb-6 border-b-2 border-black pb-4">
         <div>
           <div className="text-3xl font-black text-black uppercase tracking-tighter italic">Top 5</div>
@@ -54,7 +54,7 @@ export default function LeaderboardWidget() {
           {rows.map((r, idx) => (
             <li key={r.user_id} className="flex items-center justify-between group">
               <div className="flex items-center gap-3">
-                <span className={`flex h-8 w-8 items-center justify-center border-2 border-black font-black text-sm transition-transform group-hover:rotate-12 ${idx === 0 ? "bg-[#CCFF00] text-black shadow-[2px_2px_0_0_#000]" : "bg-white text-zinc-500"}`}>
+                <span className={`flex h-8 w-8 items-center justify-center border-2 border-black rounded-full font-black text-sm transition-transform group-hover:rotate-12 ${idx === 0 ? "bg-[#CCFF00] text-black shadow-[2px_2px_0_0_#000]" : "bg-white text-zinc-500"}`}>
                   {idx + 1}
                 </span>
                 <div className="flex flex-col">

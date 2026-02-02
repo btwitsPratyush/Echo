@@ -16,6 +16,9 @@ export default function App() {
   const [splashMode, setSplashMode] = useState<"intro" | "login">("intro");
   const [view, setView] = useState<"feed" | "post" | "leaderboard" | "about">("feed");
 
+  const [showProfile, setShowProfile] = useState(false);
+  const [chaosMode, setChaosMode] = useState(false); // Chaos Mode State
+
   // Helper to fetch user details
   const fetchMe = useCallback(async (t: string) => {
     try {
@@ -27,7 +30,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const stored = localStorage.getItem("echo_token") || "";
+    const stored = sessionStorage.getItem("echo_token") || "";
     const t = stored.trim() ? stored.trim() : null;
     setToken(t);
     // If we have a stored token, show splash briefly (Intro mode)
@@ -40,7 +43,7 @@ export default function App() {
   }, [fetchMe]);
 
   const onAuthed = useCallback((t: string) => {
-    localStorage.setItem("echo_token", t);
+    sessionStorage.setItem("echo_token", t);
     setToken(t);
     // Show splash on fresh login (Login mode)
     setSplashMode("login");
@@ -60,10 +63,12 @@ export default function App() {
       } catch {
         // ignore
       } finally {
-        localStorage.removeItem("echo_token");
+        sessionStorage.removeItem("echo_token");
         setToken(null);
         setMe(null);
         setLoggingOut(false);
+        setShowProfile(false);
+        setChaosMode(false);
       }
     }, 1500);
   }, [token]);
@@ -72,7 +77,7 @@ export default function App() {
   if (!token) return <AuthPage onAuthed={onAuthed} />;
 
   return (
-    <>
+    <div className={chaosMode ? "chaos-active" : ""}>
       {showSplash && <SplashScreen mode={splashMode} onFinish={() => setShowSplash(false)} />}
 
       {loggingOut && (
@@ -90,6 +95,74 @@ export default function App() {
               <p className="text-white font-mono text-xs font-bold uppercase tracking-widest">
                 Terminating connection...
               </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* User Profile Modal */}
+      {showProfile && me && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
+            onClick={() => setShowProfile(false)}
+          />
+
+          {/* Modal Content */}
+          <div className="relative bg-white border-4 border-black shadow-[8px_8px_0_0_#CCFF00] w-full max-w-sm rounded-3xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="bg-black text-[#CCFF00] p-3 border-b-4 border-black flex justify-between items-center">
+              <span className="font-mono text-sm font-bold uppercase tracking-widest">// USER_DATA</span>
+              <button onClick={() => setShowProfile(false)} className="text-[#CCFF00] hover:text-white">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+
+            <div className="p-8 flex flex-col items-center gap-6">
+              <div className="relative">
+                <div className="absolute inset-0 bg-[#CCFF00] rounded-full blur-xl opacity-50"></div>
+                <img
+                  src={`https://api.dicebear.com/9.x/dylan/svg?seed=${me.username}`}
+                  alt={me.username}
+                  className="w-32 h-32 rounded-full border-4 border-black bg-white relative z-10"
+                />
+              </div>
+
+              <div className="text-center space-y-1">
+                <h3 className="text-3xl font-black uppercase italic tracking-tighter">{me.username}</h3>
+                <div className="inline-block bg-black text-white px-3 py-1 font-mono text-xs font-bold rounded-full">
+                  ID: #{me.id.toString().padStart(4, '0')}
+                </div>
+              </div>
+
+              <div className="w-full grid grid-cols-2 gap-4 text-center">
+                <div className="border-2 border-black p-2 rounded-xl bg-zinc-50">
+                  <div className="text-2xl font-black">{me.post_count || 0}</div>
+                  <div className="text-[10px] font-bold uppercase text-zinc-500">Posts</div>
+                </div>
+                <div className="border-2 border-black p-2 rounded-xl bg-zinc-50">
+                  <div className="text-2xl font-black">{me.karma || 0}</div>
+                  <div className="text-[10px] font-bold uppercase text-zinc-500">Karma</div>
+                </div>
+              </div>
+
+              {/* CHAOS MODE TOGGLE */}
+              <button
+                onClick={() => setChaosMode(!chaosMode)}
+                className={`w-full py-3 font-black uppercase tracking-widest border-4 border-black rounded-full transition-all ${chaosMode
+                  ? 'bg-black text-[#CCFF00] shadow-none translate-x-[2px] translate-y-[2px]'
+                  : 'bg-white text-black hover:bg-zinc-100 shadow-[4px_4px_0_0_#999]'
+                  }`}
+              >
+                {chaosMode ? "DISABLE CHAOS" : "ENABLE CHAOS"}
+              </button>
+
+              <button
+                onClick={() => void logout()}
+                className="w-full py-4 bg-[#FF0000] text-white font-black uppercase tracking-widest border-4 border-black rounded-2xl hover:bg-black hover:text-[#FF0000] transition-colors shadow-[4px_4px_0_0_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+              >
+                Terminate Session
+              </button>
             </div>
           </div>
         </div>
@@ -114,9 +187,8 @@ export default function App() {
             {/* Profile Dropdown Trigger */}
             <div className="relative group">
               <button
-                onClick={() => setView('about')} // Quick hack or proper state? Let's use a local state for dropdown.
-                // Actually, let's just make it a simple toggle.
-                className="hidden sm:flex items-center gap-3 border-4 border-black px-4 py-2 bg-[#CCFF00] shadow-[4px_4px_0_0_#000] hover:translate-y-1 hover:shadow-none transition-all cursor-pointer active:scale-95"
+                onClick={() => setShowProfile(true)}
+                className="hidden sm:flex items-center gap-3 border-4 border-black px-6 py-2 rounded-full bg-[#CCFF00] shadow-[4px_4px_0_0_#000] hover:translate-y-1 hover:shadow-none transition-all cursor-pointer active:scale-95"
               >
                 <img
                   src={`https://api.dicebear.com/9.x/dylan/svg?seed=${me.username}`}
@@ -131,30 +203,33 @@ export default function App() {
             </div>
 
             <button
-              onClick={() => void logout()}
-              className="p-2 border-4 border-black hover:bg-black hover:text-white transition-colors bg-white shadow-[4px_4px_0_0_#000] active:shadow-none active:translate-x-[2px] active:translate-y-[2px]"
-              title="Logout"
+              onClick={() => setShowProfile(true)} // Mobile profile trigger
+              className="sm:hidden p-2 border-4 border-black rounded-full bg-[#CCFF00] shadow-[4px_4px_0_0_#000]"
             >
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+              <img
+                src={`https://api.dicebear.com/9.x/dylan/svg?seed=${me.username}`}
+                alt={me.username}
+                className="w-8 h-8 rounded-full border-2 border-black bg-white"
+              />
             </button>
           </div>
         )}
         {!me && (
           <div className="fixed top-6 right-6 z-50">
-            <button onClick={() => void logout()} className="font-bold underline text-xl bg-white px-4 py-2 border-4 border-black shadow-[4px_4px_0_0_#000]">Login</button>
+            <button onClick={() => void logout()} className="font-bold underline text-xl bg-white px-6 py-2 border-4 border-black rounded-full shadow-[4px_4px_0_0_#000]">Login</button>
           </div>
         )}
 
         {/* Sticky Nav Dock */}
-        <header className="sticky top-6 z-40 mx-auto max-w-lg px-4">
-          <div className="bg-white border-4 border-black shadow-[4px_4px_0_0_#000] p-2">
-            <nav className="flex w-full gap-2">
+        <header className="sticky top-6 z-40 mx-auto w-full max-w-xl px-4">
+          <div className="bg-white border-4 border-black shadow-[4px_4px_0_0_#000] p-2 rounded-full">
+            <nav className="flex items-center gap-2 w-full">
               {['feed', 'post', 'leaderboard', 'about'].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setView(tab as any)}
-                  className={`flex-1 py-3 text-xs font-black uppercase tracking-widest border-2 transition-all ${view === tab
-                    ? 'bg-black text-white border-black shadow-[2px_2px_0_0_#8B5CF6]'
+                  className={`flex-1 px-6 py-3 text-xs font-black uppercase tracking-widest border-2 rounded-full transition-all ${view === tab
+                    ? 'bg-black text-white border-black shadow-none'
                     : 'bg-transparent text-zinc-400 border-transparent hover:bg-zinc-100 hover:text-black'
                     }`}
                 >
@@ -165,7 +240,7 @@ export default function App() {
           </div>
         </header>
 
-        <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
+        <main className="mx-auto max-w-3xl px-4 py-8 mt-8 sm:px-6 lg:px-8">
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             {view === 'feed' && (
               <div className="space-y-8">
@@ -185,7 +260,7 @@ export default function App() {
 
             {view === 'about' && (
               <div className="max-w-md mx-auto">
-                <div className="border-4 border-black bg-white p-0 shadow-[8px_8px_0_0_#CCFF00] overflow-hidden group hover:-translate-y-1 transition-transform">
+                <div className="border-4 border-black bg-white p-0 rounded-3xl shadow-[8px_8px_0_0_#CCFF00] overflow-hidden group hover:-translate-y-1 transition-transform">
                   <div className="bg-black text-[#CCFF00] p-3 overflow-hidden whitespace-nowrap border-b-4 border-black">
                     <div className="animate-marquee inline-block font-mono text-sm font-bold uppercase tracking-widest">
                       // SYSTEM STATUS: ONLINE // WELCOME TO ECHO // NO FILTERS DETECTED // CHAOS LEVEL: MAXIMUM // JOIN THE CULT // SYSTEM STATUS: ONLINE //
@@ -214,6 +289,20 @@ export default function App() {
                         <span className="text-emerald-600 animate-pulse">24ms</span>
                       </div>
                     </div>
+
+                    <div className="bg-zinc-50 p-4 border-l-4 border-black">
+                      <h4 className="font-black uppercase text-sm mb-2">Unique Features</h4>
+                      <ul className="text-xs font-bold space-y-2">
+                        <li className="flex items-center gap-2">
+                          <span className="w-2 h-2 bg-[#CCFF00] border border-black rounded-full"></span>
+                          <span>NO ALGORITHMS. RAW FEED.</span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <span className="w-2 h-2 bg-[#CCFF00] border border-black rounded-full"></span>
+                          <span>CHAOS MODE (VISUAL GLITCH FX)</span>
+                        </li>
+                      </ul>
+                    </div>
                   </div>
 
                   <div className="bg-[#CCFF00] p-4 border-t-4 border-black text-center hover:bg-black hover:text-[#CCFF00] transition-colors cursor-pointer group/link">
@@ -227,6 +316,6 @@ export default function App() {
           </div>
         </main>
       </div>
-    </>
+    </div>
   );
 }
