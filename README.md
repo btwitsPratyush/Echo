@@ -22,11 +22,26 @@ It demonstrates how to build scalable social features (like nested comments and 
 
 ---
 
----
-
 ## 🏗 System Architecture & Data Flow
 
 Echo is built with a separation of concerns, ensuring scalability and type safety.
+
+### 🧭 Architecture Diagram (runtime)
+
+```mermaid
+flowchart LR
+  U[User] -->|Browser| FE[Frontend\nReact + Vite + Tailwind\n:5173]
+
+  FE -->|JSON over HTTP| API[Django REST API (DRF)\n:8000]
+  API -->|ORM queries + transactions| DB[(Database\nSQLite (dev) / Postgres (docker/prod))]
+
+  subgraph Core Domain
+    API --- C1[Posts + Likes]
+    API --- C2[Comments (adjacency list)\nTree built in memory]
+    API --- C3[KarmaActivity ledger\nappend-only]
+    API --- C4[Leaderboard\nSUM(amount) last 24h]
+  end
+```
 
 ### 🔄 The Data Flow
 
@@ -39,6 +54,25 @@ Echo is built with a separation of concerns, ensuring scalability and type safet
 4.  **Database (SQLite/Postgres)**: The data is persisted.
     *   **Ledger System**: Instead of updating a "Karma" field, we insert a new `KarmaActivity` row. This provides an immutable history of all points earned.
 5.  **Live Updates**: The Leaderboard recalculates dynamically by summing the last 24 hours of `KarmaActivity`.
+
+### 🧾 Example Request Flow (like → karma → leaderboard)
+
+```mermaid
+sequenceDiagram
+  participant B as Browser (React)
+  participant A as DRF API (Django)
+  participant D as DB (SQLite/Postgres)
+
+  B->>A: POST /like (token auth)
+  A->>D: transaction.atomic()\ncreate Like if not exists
+  A->>D: insert KarmaActivity(amount=+5/+1)
+  D-->>A: ok
+  A-->>B: { created, already_liked, like_count }
+  B->>A: GET /leaderboard
+  A->>D: SUM(KarmaActivity.amount)\nWHERE created_at >= now-24h\nGROUP BY user\nORDER BY karma desc\nLIMIT 5
+  D-->>A: rows
+  A-->>B: top_5 leaderboard
+```
 
 ### Stack
 - **Backend**: Django & Django REST Framework (DRF)
@@ -79,6 +113,11 @@ python manage.py runserver
 cd frontend
 npm install
 npm run dev
+```
+
+### Docker (optional)
+```bash
+docker compose up --build
 ```
 
 Visit `http://localhost:5173` to enter the arena.
