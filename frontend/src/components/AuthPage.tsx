@@ -33,9 +33,7 @@ export default function AuthPage({ onAuthed }: Props) {
         <div className="absolute top-20 right-20 w-32 h-32 bg-[#FF90E8] rounded-full border-4 border-black" />
         <div className="absolute bottom-40 left-20 w-48 h-48 bg-[#2DCDDF] border-4 border-black skew-x-12" />
 
-        <div className="relative z-10">
-          <Logo className="w-16 h-16 text-black" textClassName="text-4xl" />
-        </div>
+
 
         <div className="relative z-10 space-y-6 max-w-xl">
           <h1 className="text-8xl font-black tracking-tighter leading-[0.9] text-black drop-shadow-[4px_4px_0_rgba(255,255,255,0.5)]">
@@ -46,9 +44,9 @@ export default function AuthPage({ onAuthed }: Props) {
           </p>
         </div>
 
-        <div className="relative z-10 font-mono text-xs font-bold uppercase tracking-widest text-black/60">
-          © 2026 Echo Systems Inc.
-        </div>
+        {/* <div className="relative z-10 font-mono text-xs font-bold uppercase tracking-widest text-black/60">
+          © 2026 Echo.
+        </div> */}
       </div>
 
       {/* Right Panel - Form */}
