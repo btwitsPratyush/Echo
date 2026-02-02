@@ -84,4 +84,4 @@ npm run dev
 Visit `http://localhost:5173` to enter the arena.
 
 ---
-© 2026 Echo Systems Inc.
+© 2026 Echo.
